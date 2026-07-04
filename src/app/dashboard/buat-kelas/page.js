@@ -124,8 +124,11 @@ export default function BuatKelas() {
           </div>
         </div>
         <div className="flex flex-col items-center px-5 py-6 border-b border-slate-100">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white font-bold text-xl mb-2">BS</div>
-          <div className="font-semibold text-sm text-slate-800">Bu Sari</div>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl mb-2 shadow-sm"
+               style={{ background: user?.color || '#2563eb' }}>
+            {user?.initial || "..."}
+          </div>
+          <div className="font-semibold text-sm text-slate-800">{user?.name || "Memuat..."}</div>
           <div className="text-xs text-slate-400">Guru Model</div>
         </div>
         <nav className="flex-1 px-3 py-4 flex flex-col gap-1">

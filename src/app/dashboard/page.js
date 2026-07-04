@@ -121,8 +121,8 @@ export default function Dashboard() {
           {[
             { label: "Beranda",    icon: "🏠", active: true,  action: () => {} },
             { label: "Buat Kelas", icon: "➕", active: false, action: () => router.push("/dashboard/buat-kelas") },
-            { label: "Observer",   icon: "👁️", active: false, action: () => alert("Halaman Observer") },
-            { label: "Bantuan",    icon: "❓", active: false, action: () => alert("Halaman Bantuan") },
+            { label: "Observer",   icon: "👁️", active: false, action: () => router.push("/dashboard/observer-list") },
+            { label: "Bantuan",    icon: "❓", active: false, action: () => router.push("/dashboard/bantuan") },
           ].map(item => (
             <button
               key={item.label}
