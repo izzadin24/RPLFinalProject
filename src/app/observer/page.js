@@ -101,11 +101,11 @@ export default function ObserverDashboard() {
         
         <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
           {[
-            { label: "Dashboard",  icon: "🏠", active: true },
-            { label: "Riwayat",    icon: "🕒", active: false },
-            { label: "Bantuan",    icon: "❓", active: false },
+            { label: "Dashboard",  icon: "🏠", active: true,  action: () => { router.push("/observer"); setIsMenuOpen(false); } },
+            { label: "Riwayat",    icon: "🕒", active: false, action: () => { router.push("/observer/riwayat"); setIsMenuOpen(false); } },
+            { label: "Bantuan",    icon: "❓", active: false, action: () => { router.push("/observer/bantuan"); setIsMenuOpen(false); } },
           ].map(item => (
-            <button key={item.label} onClick={() => setIsMenuOpen(false)}
+            <button key={item.label} onClick={item.action}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left transition-all ${
                 item.active ? "bg-green-600 text-white shadow-md" : "text-slate-500 hover:bg-[#EFF3FB] hover:text-green-600"
               }`}>
@@ -197,10 +197,9 @@ export default function ObserverDashboard() {
                       <td className="px-5 py-4 font-medium text-slate-700">{k.guruModel}</td>
                       <td className="px-5 py-4 text-slate-500">{k.tanggal}</td>
                       <td className="px-5 py-4 text-center">
-                        <button onClick={() => { setKode(k.kode); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                          className="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition">
-                          Observasi
-                        </button>
+                        <button onClick={() => router.push("/observer/penilaian")}
+                        className="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition">
+                          Observasi </button>
                       </td>
                     </tr>
                   ))
