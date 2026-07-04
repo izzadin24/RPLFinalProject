@@ -3,40 +3,22 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../utils/supabase";
 
-
-
-const DUMMY_NOTIF = [
-  { id: 1, initial: "LA", color: "#2563EB", nama: "Lusia Alexander", aksi: "bergabung sebagai Observer",        waktu: "5 menit lalu" },
-  { id: 2, initial: "AW", color: "#10b981", nama: "Amy Wilson",      aksi: "mengumpulkan hasil penilaian",     waktu: "1 jam lalu" },
-  { id: 3, initial: "MM", color: "#8b5cf6", nama: "Martin McKinney", aksi: "mengundang sebagai Observer",      waktu: "19 Mei 2023" },
-  { id: 4, initial: "KM", color: "#f59e0b", nama: "Kathryn Murphy",  aksi: "mengundang sebagai Observer",      waktu: "27 April 2023" },
-];
-
-const BADGE = {
-  akan:    { label: "Akan Datang",  cls: "bg-blue-100 text-blue-600" },
-  belum:   { label: "Belum Dimulai",cls: "bg-yellow-100 text-yellow-600" },
-  selesai: { label: "Selesai",      cls: "bg-green-100 text-green-700" },
-};
-
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser]   = useState(null);
-  const [clock, setClock] = useState({ tgl: "", jam: "" });
-  const [search, setSearch] = useState("");
+  const [user, setUser] = useState(null);
+  const [classList, setClassList] = useState([]);
   const [stats, setStats] = useState({ classes: 0, gurus: 0, observers: 0 });
   
-  
-  // TAMBAHKAN STATE BARU INI UNTUK MENAMPUNG KELAS
-  const [classList, setClassList] = useState([]);
+  // State untuk Hamburger Menu di layar Mobile
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // State untuk fitur cari kelas
+  const [search, setSearch] = useState("");
 
- 
   useEffect(() => {
-   // Cek User Login
     const data = localStorage.getItem("user");
     if (!data) { router.push("/"); return; }
     setUser(JSON.parse(data));
 
-    // 1. Ambil data kelas
     async function fetchClasses() {
       const { data: dbClasses, error } = await supabase
         .from('classes')
@@ -50,7 +32,6 @@ export default function Dashboard() {
       }
     }
     
-    // 2. Ambil data total statistik
     async function fetchStats() {
       const { count: countClasses } = await supabase.from('classes').select('*', { count: 'exact', head: true });
       const { count: countGurus } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'guru_model');
@@ -63,118 +44,103 @@ export default function Dashboard() {
       });
     }
     
-    // 3. Jalankan keduanya
     fetchClasses();
     fetchStats();
-  }, []);
-
-  useEffect(() => {
-    function tick() {
-      const now = new Date();
-      const days   = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-      const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-      setClock({
-        tgl: `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`,
-        jam: `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`,
-      });
-    }
-    tick();
-    const t = setInterval(tick, 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  if (!user) return null;
-
-  // UBAH INI
-  const filtered = classList.filter(c =>
-    c.nama.toLowerCase().includes(search.toLowerCase()) ||
-    c.guruModel.toLowerCase().includes(search.toLowerCase())
-  );
+  }, [router]);
 
   return (
-    <div className="flex min-h-screen bg-[#EFF3FB]" style={{fontFamily:"'Segoe UI',sans-serif"}}>
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#EFF3FB] relative" style={{fontFamily:"'Segoe UI',sans-serif"}}>
+
+      {/* ── HEADER MOBILE ── */}
+      <div className="md:hidden flex items-center justify-between bg-white px-5 py-4 shadow-sm sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">E</div>
+          <div className="font-bold text-slate-800">Edvisor</div>
+        </div>
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-2xl text-slate-800 focus:outline-none">
+          ☰
+        </button>
+      </div>
+
+      {/* ── OVERLAY GELAP ── */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setIsMenuOpen(false)}></div>
+      )}
 
       {/* ── SIDEBAR ── */}
-      <aside className="w-[220px] min-h-screen bg-white flex flex-col shadow-md flex-shrink-0">
+      <aside className={`fixed md:sticky top-0 left-0 min-h-screen bg-white flex flex-col shadow-md flex-shrink-0 z-50 w-[220px] transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
+        
+        <button onClick={() => setIsMenuOpen(false)} className="md:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold">
+          ✕
+        </button>
 
-        {/* Brand */}
-        <div className="flex items-center gap-3 px-5 py-6 border-b border-slate-100">
+        <div className="flex items-center gap-3 px-5 py-6 border-b border-slate-100 mt-8 md:mt-0">
           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base">E</div>
           <div>
             <div className="font-bold text-sm text-slate-800">Edvisor</div>
             <div className="text-xs text-slate-400">Lesson Study</div>
           </div>
         </div>
-
-        {/* Profile */}
+        
         <div className="flex flex-col items-center px-5 py-6 border-b border-slate-100">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white font-bold text-xl mb-2">
-            {user.name?.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase()}
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl mb-2 shadow-sm"
+               style={{ background: user?.color || '#2563eb' }}>
+            {user?.initial || "..."}
           </div>
-          <div className="font-semibold text-sm text-slate-800">{user.name}</div>
-          <div className="text-xs text-slate-400 mt-0.5">{user.role === "guru_model" ? "Guru Model" : "Observer"}</div>
-          <div className="text-xs text-slate-400">{user.email}</div>
+          <div className="font-semibold text-sm text-slate-800">{user?.name || "Memuat..."}</div>
+          <div className="text-xs text-slate-400">Guru Model</div>
         </div>
-
-        {/* Nav */}
+        
         <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
           {[
-            { label: "Beranda",    icon: "🏠", active: true,  action: () => {} },
-            { label: "Buat Kelas", icon: "➕", active: false, action: () => router.push("/dashboard/buat-kelas") },
-            { label: "Observer",   icon: "👁️", active: false, action: () => router.push("/dashboard/observer-list") },
-            { label: "Bantuan",    icon: "❓", active: false, action: () => router.push("/dashboard/bantuan") },
+            { label: "Beranda",    icon: "🏠", active: true,  action: () => { router.push("/dashboard"); setIsMenuOpen(false); } },
+            { label: "Buat Kelas", icon: "➕", active: false, action: () => { router.push("/dashboard/buat-kelas"); setIsMenuOpen(false); } },
+            { label: "Observer",   icon: "👁️", active: false, action: () => { router.push("/dashboard/observer-list"); setIsMenuOpen(false); } },
+            { label: "Bantuan",    icon: "❓", active: false, action: () => { alert("Halaman Bantuan"); setIsMenuOpen(false); } },
           ].map(item => (
-            <button
-              key={item.label}
-              onClick={item.action}
+            <button key={item.label} onClick={item.action}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left transition-all ${
-                item.active
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-500 hover:bg-[#EFF3FB] hover:text-blue-600"
-              }`}
-            >
+                item.active ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:bg-[#EFF3FB] hover:text-blue-600"
+              }`}>
               <span className="w-5 text-center text-base">{item.icon}</span>
               {item.label}
             </button>
           ))}
         </nav>
-
-        {/* Logout */}
+        
         <div className="px-5 py-4 border-t border-slate-100">
-          <button
-            onClick={() => { localStorage.clear(); router.push("/"); }}
-            className="flex items-center gap-2 text-sm text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg w-full transition"
-          >
+          <button onClick={() => { localStorage.clear(); router.push("/"); }}
+            className="flex items-center gap-2 text-sm text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg w-full transition">
             🚪 Keluar
           </button>
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
-      <main className="flex-1 px-8 py-7 overflow-y-auto">
-
-        {/* Header */}
-        <div className="flex justify-between items-start mb-6">
+      {/* ── MAIN CONTENT ── */}
+      <main className="flex-1 w-full px-5 py-6 md:px-8 md:py-7 overflow-x-hidden">
+        
+        {/* Header Content */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Selamat datang kembali, {user.name}!</p>
+            <p className="text-sm text-slate-500 mt-1">Selamat datang kembali, {user?.name || "..."}!</p>
           </div>
-          <div className="text-right text-sm text-slate-500">
-            <div>{clock.tgl}</div>
-            <div className="text-xl font-bold text-blue-600 mt-0.5">{clock.jam}</div>
-          </div>
-        </div>
-
-        {/* Security Banner */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl px-5 py-3.5 flex items-center gap-3 mb-6 text-sm font-semibold">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0"></span>
-          🔒 Koneksi Aman · Sesi Terenkripsi SSL · Data Anda Terlindungi
-        </div>
-
-        {/* Stat Cards Dinamis */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
           
-          {/* Card 1: Lesson Study */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white px-4 py-3 rounded-xl border border-blue-100 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              <span className="text-sm font-semibold text-slate-700">Koneksi Aman</span>
+            </div>
+            <div className="hidden sm:block text-slate-300">|</div>
+            <p className="text-xs text-slate-500">Sesi Terenkripsi SSL • Data Anda Terlindungi</p>
+          </div>
+        </div>
+
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm text-left w-full">
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">📋</div>
             <div>
@@ -183,7 +149,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Card 2: Guru Model */}
           <div className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm text-left w-full">
             <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">👨‍🏫</div>
             <div>
@@ -192,69 +157,36 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Card 3: Observer (Bisa diklik) */}
           <button onClick={() => router.push("/dashboard/observer-list")} 
-            className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all text-left w-full group cursor-pointer">
+            className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all text-left w-full group cursor-pointer sm:col-span-2 md:col-span-1">
             <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 transition-transform">👁️</div>
             <div>
               <div className="text-3xl font-extrabold text-slate-800 leading-none">{stats.observers}</div>
               <div className="text-xs text-slate-400 mt-1 text-blue-500 font-semibold group-hover:text-blue-600">Observer ➔</div>
             </div>
           </button>
-
         </div>
 
-        {/* Shortcut */}
-        <div className="grid grid-cols-2 gap-3.5 mb-6">
-          <button
-            onClick={() => router.push("/dashboard/buat-kelas")}
-            className="bg-white rounded-xl p-4 flex items-center gap-3.5 border-2 border-dashed border-slate-200 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 transition-all text-slate-500 text-sm font-medium"
-          >
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">➕</div>
-            <div className="text-left">
-              <div className="font-bold text-slate-800 text-sm mb-0.5">Buat Kelas Baru</div>
-              <div className="text-xs text-slate-400">Buat sesi Lesson Study baru</div>
-            </div>
-          </button>
-          <button
-            onClick={() => alert("Halaman hasil observasi")}
-            className="bg-white rounded-xl p-4 flex items-center gap-3.5 border-2 border-dashed border-slate-200 hover:border-green-500 hover:bg-green-50 hover:text-green-600 transition-all text-slate-500 text-sm font-medium"
-          >
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📊</div>
-            <div className="text-left">
-              <div className="font-bold text-slate-800 text-sm mb-0.5">Lihat Hasil Observasi</div>
-              <div className="text-xs text-slate-400">Review penilaian observer</div>
-            </div>
-          </button>
-        </div>
-
-        {/* Bottom Grid */}
-        <div className="grid gap-5" style={{gridTemplateColumns:"1fr 300px"}}>
-
-          {/* Kiri */}
-          <div>
-            {/* Jadwal Terdekat */}
+        {/* Jadwal Terdekat */}
         <div className="mb-8">
           <h2 className="text-lg font-bold text-slate-800 mb-4">Jadwal Terdekat</h2>
           
           {classList.length > 0 ? (
-            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
-              {/* Ornamen Background (Opsional biar cakep) */}
+            <div className="bg-blue-600 rounded-2xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-20 translate-x-20 pointer-events-none"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center gap-2 text-sm font-medium text-blue-100 mb-3">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-blue-100 mb-3">
                   <span>📅 {classList[0].tanggal}</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span className="bg-blue-500/50 px-2 py-0.5 rounded text-xs">Menunggu</span>
                 </div>
                 
-                <h3 className="text-2xl font-bold mb-1">{classList[0].nama}</h3>
+                <h3 className="text-xl md:text-2xl font-bold mb-1 leading-snug">{classList[0].nama}</h3>
                 <p className="text-blue-100 text-sm mb-6">{classList[0].mapel} • {classList[0].guruModel}</p>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-4">
                   <div className="flex -space-x-2">
-                    {/* Render lingkar observer secara dinamis */}
                     {classList[0].observers && classList[0].observers.map((inisial, idx) => (
                       <div key={idx} 
                         className="w-9 h-9 rounded-full border-2 border-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-sm"
@@ -268,7 +200,6 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            // Tampilan kalau database kosong
             <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center">
               <div className="text-slate-400 mb-2">📅</div>
               <div className="text-slate-500 font-medium">Belum ada jadwal kelas mendatang.</div>
@@ -276,80 +207,84 @@ export default function Dashboard() {
           )}
         </div>
 
-            {/* Aktivitas */}
-            <div className="flex justify-between items-center mb-3">
-              <div className="font-bold text-slate-800 text-sm">Aktivitas Saya</div>
-              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-400">
-                🔍
-                <input
-                  className="outline-none text-slate-700 text-xs bg-transparent"
-                  placeholder="Cari kelas..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-              </div>
-            </div>
+        {/* Aktivitas Saya (Tabel Responsif & Fitur Search) */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 mt-8 gap-3">
+          <div className="font-bold text-slate-800 text-sm">Aktivitas Saya</div>
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-400 w-full sm:w-auto">
+            🔍
+            <input
+              className="outline-none text-slate-700 text-xs bg-transparent w-full sm:w-48"
+              placeholder="Cari nama atau kode kelas..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
 
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <table className="w-full border-collapse">
-                <thead>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full border-collapse whitespace-nowrap">
+              <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  {/* TAMBAHKAN "Kode" DI DALAM ARRAY INI */}
                   {["Nama Kelas", "Kode", "Mata Pelajaran", "Guru Model", "Observer", "Tanggal", "Status"].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {filtered.map((c, i) => (
-                  <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors">
-                    <td className="px-4 py-3 text-sm font-semibold text-slate-800">{c.nama}</td>
-                    
-                    {/* RENDER KODE KELAS DI SINI */}
-                    <td className="px-4 py-3 text-sm font-bold font-mono text-blue-600">{c.kode || "EDV---"}</td>
-                    
-                    <td className="px-4 py-3 text-sm text-slate-500">{c.mapel}</td>
-                    <td className="px-4 py-3 text-sm font-semibold text-slate-700">{c.guruModel}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex">
-                        {c.observers.map((o, j) => (
-                          <div key={j} className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-                            style={{background: c.colors[j], marginLeft: j > 0 ? "-6px" : "0"}}>{o}</div>
+              <tbody className="text-sm divide-y divide-slate-100">
+                {classList
+                  .filter(cls => 
+                    (cls.nama && cls.nama.toLowerCase().includes(search.toLowerCase())) || 
+                    (cls.kode && cls.kode.toLowerCase().includes(search.toLowerCase()))
+                  )
+                  .map(cls => (
+                  <tr key={cls.id} className="hover:bg-slate-50 transition group">
+                    <td className="px-4 py-4">
+                      <div className="font-bold text-slate-800">{cls.nama}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{cls.mapel}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">{cls.kode}</span>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-slate-700">{cls.guruModel}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex -space-x-1.5">
+                        {cls.observers && cls.observers.map((obs, i) => (
+                          <div key={i} className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm"
+                            style={{ backgroundColor: cls.colors ? cls.colors[i] : '#94a3b8' }}>
+                            {obs}
+                          </div>
                         ))}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-500">{c.tanggal}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${BADGE[c.status].cls}`}>
-                        {BADGE[c.status].label}
+                    <td className="px-4 py-4 text-slate-500">{cls.tanggal}</td>
+                    <td className="px-4 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        cls.status === "selesai" ? "bg-green-100 text-green-700" :
+                        cls.status === "belum"   ? "bg-orange-100 text-orange-700" :
+                        "bg-blue-100 text-blue-700"
+                      }`}>
+                        {cls.status === "selesai" ? "Selesai" : cls.status === "belum" ? "Berlangsung" : "Akan Datang"}
                       </span>
                     </td>
                   </tr>
                 ))}
+                {/* Tampilan kalau hasil pencarian kosong */}
+                {classList.filter(cls => 
+                  (cls.nama && cls.nama.toLowerCase().includes(search.toLowerCase())) || 
+                  (cls.kode && cls.kode.toLowerCase().includes(search.toLowerCase()))
+                ).length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="px-4 py-8 text-center text-slate-400 font-medium">
+                      Kelas tidak ditemukan.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
-            </div>
           </div>
-
-          {/* Notifikasi */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm self-start">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm font-bold text-slate-800">🔔 Notifikasi</div>
-              <div className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">4</div>
-            </div>
-            {DUMMY_NOTIF.map(n => (
-              <div key={n.id} className="flex gap-2.5 py-2.5 border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-1 transition">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{background: n.color}}>{n.initial}</div>
-                <div>
-                  <div className="text-xs text-slate-600 leading-relaxed"><strong>{n.nama}</strong> {n.aksi}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">{n.waktu}</div>
-                </div>
-              </div>
-            ))}
-            <div className="text-center mt-3 text-xs text-blue-600 font-semibold cursor-pointer">Lihat Selengkapnya →</div>
-          </div>
-
         </div>
+
       </main>
     </div>
   );
