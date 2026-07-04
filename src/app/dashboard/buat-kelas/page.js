@@ -23,12 +23,17 @@ export default function BuatKelas() {
   const [copied, setCopied]         = useState(false);
   const [toast, setToast]           = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState(null);
 
   // State untuk menyimpan data observer asli dari Supabase
   const [observersData, setObserversData] = useState([]);
   const [loadingObservers, setLoadingObservers] = useState(true);
 
   useEffect(() => {
+    const loggedInUser = localStorage.getItem("user");
+    if (loggedInUser) {
+      setUser(JSON.parse(loggedInUser));
+    }
     setKode(generateKode());
     
     // Fungsi untuk menarik data observer dari tabel users
@@ -85,7 +90,7 @@ export default function BuatKelas() {
           kode: kode,
           nama: namaKelas,
           mapel: mapel,
-          guruModel: "Bu Sari",
+          guruModel: user ? user.name : "Guru Model",
           observers: selectedObservers.map(o => o.initial),
           colors: selectedObservers.map(o => o.color),
           tanggal: formattedTanggal,

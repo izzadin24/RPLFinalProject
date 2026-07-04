@@ -14,19 +14,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    const user = DUMMY_USERS.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (!user) {
-      setError("Email atau password salah.");
+    
+    // Tarik data dari Supabase yang cocok dengan email dan password
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .eq("password", password)
+      .single();
+
+    if (error || !data) {
+      alert("Email atau password salah!");
       return;
     }
-    localStorage.setItem("user", JSON.stringify(user));
-    if (user.role === "guru_model") {
+
+    // Simpan data lengkap user ke localStorage
+    localStorage.setItem("user", JSON.stringify(data));
+
+    // Lempar ke halaman sesuai role
+    if (data.role === "guru_model") {
       router.push("/dashboard");
-    } else {
+    } else if (data.role === "observer") {
       router.push("/observer");
     }
   }
