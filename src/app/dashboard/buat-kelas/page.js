@@ -112,10 +112,10 @@ export default function BuatKelas() {
   const selectedObservers = observersData.filter(o => selectedIds.has(o.id));
 
   return (
-    <div className="flex min-h-screen bg-[#EFF3FB]" style={{fontFamily:"'Segoe UI',sans-serif"}}>
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#EFF3FB] relative" style={{fontFamily:"'Segoe UI',sans-serif"}}>
 
       {/* ── SIDEBAR ── */}
-      <aside className="w-[220px] min-h-screen bg-white flex flex-col shadow-md flex-shrink-0">
+      <aside className="w-full md:w-[220px] h-auto md:min-h-screen bg-white flex flex-col shadow-md flex-shrink-0 relative md:sticky top-0 z-10">
         <div className="flex items-center gap-3 px-5 py-6 border-b border-slate-100">
           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base">E</div>
           <div>
@@ -156,7 +156,7 @@ export default function BuatKelas() {
       </aside>
 
       {/* ── MAIN ── */}
-      <main className="flex-1 px-8 py-7">
+      <main className="flex-1 w-full px-5 py-6 md:px-8 md:py-7 overflow-x-hidden">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
