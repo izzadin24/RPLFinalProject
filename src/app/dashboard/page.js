@@ -4,12 +4,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../utils/supabase";
 
 
-const DUMMY_CLASSES = [
-  { id: 1, kode: "EDV8X2A", nama: "X Rekayasa Perangkat Lunak B", mapel: "Dasar Pemrogr...", guruModel: "Desi Suryani", observers: ["A","B","C"], colors: ["#2563EB","#10b981","#f59e0b"], tanggal: "04 Jul 2023", status: "akan" },
-  { id: 2, kode: "EDV9Y3B", nama: "XI Teknik Mekatronika C",       mapel: "Robotika",        guruModel: "Bagus Nugroho", observers: ["D","E"],       colors: ["#8b5cf6","#ef4444"],             tanggal: "29 Jun 2023", status: "akan" },
-  { id: 3, kode: "EDV2Z1C", nama: "XII Multimedia A",              mapel: "Videografi",      guruModel: "Putra Pratama", observers: ["F","G","H"],   colors: ["#2563EB","#10b981","#f59e0b"],   tanggal: "23 Jun 2023", status: "belum" },
-  { id: 4, kode: "EDV5W4D", nama: "X Rekayasa Perangkat Lunak B",  mapel: "Dasar Pemrogr...", guruModel: "Susi Pungitasari", observers: ["I","J"],  colors: ["#ef4444","#8b5cf6"],            tanggal: "15 Jun 2023", status: "selesai" },
-];
 
 const DUMMY_NOTIF = [
   { id: 1, initial: "LA", color: "#2563EB", nama: "Lusia Alexander", aksi: "bergabung sebagai Observer",        waktu: "5 menit lalu" },
@@ -35,8 +29,7 @@ export default function Dashboard() {
 
  
   useEffect(() => {
-    // Cek User Login
-    const data = localStorage.getItem("user");
+   const data = localStorage.getItem("user");
     if (!data) { router.push("/"); return; }
     setUser(JSON.parse(data));
 
@@ -45,13 +38,13 @@ export default function Dashboard() {
       const { data: dbClasses, error } = await supabase
         .from('classes')
         .select('*')
-        .order('id', { ascending: false }); // Biar kelas terbaru ada di atas
+        .order('id', { ascending: false });
 
       if (error) {
         console.error("Error ngambil data:", error);
       } else {
-        // Gabungkan data asli Supabase dengan DUMMY_CLASSES
-        setClassList([...dbClasses, ...DUMMY_CLASSES]);
+        // Langsung masukkan data murni dari database, tanpa dummy
+        setClassList(dbClasses || []);
       }
     }
     
