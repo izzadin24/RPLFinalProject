@@ -96,7 +96,7 @@ export default function Dashboard() {
             { label: "Beranda",    icon: "🏠", active: true,  action: () => { router.push("/dashboard"); setIsMenuOpen(false); } },
             { label: "Buat Kelas", icon: "➕", active: false, action: () => { router.push("/dashboard/buat-kelas"); setIsMenuOpen(false); } },
             { label: "Observer",   icon: "👁️", active: false, action: () => { router.push("/dashboard/observer-list"); setIsMenuOpen(false); } },
-            { label: "Bantuan",    icon: "❓", active: false, action: () => { alert("Halaman Bantuan"); setIsMenuOpen(false); } },
+            { label: "Bantuan",    icon: "❓", active: false, action: () => { router.push("/dashboard/bantuan"); setIsMenuOpen(false); } },
           ].map(item => (
             <button key={item.label} onClick={item.action}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left transition-all ${
